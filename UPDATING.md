@@ -2,9 +2,9 @@
 
 The package wraps a single upstream source: the published OpenCode container
 image, `ghcr.io/anomalyco/opencode`. The package builds a thin image on top of it
-(`./Dockerfile`), so the pin lives in that Dockerfile's `FROM` line rather than in
-a `dockerTag` field in `startos/manifest/index.ts` — the manifest only says
-`source: { dockerBuild: {} }`.
+(`./Dockerfile`), so the pin — release tag plus manifest-list digest — lives in
+that Dockerfile's `FROM` line rather than in a `dockerTag` field in
+`startos/manifest/index.ts`, which only says `source: { dockerBuild: {} }`.
 
 ## Determining the upstream version
 
@@ -24,19 +24,20 @@ Do not use `.../releases/latest`: this repository marks the current `v2.x` line 
 newer than what that endpoint returns, so it still reports the `v1.19.x` series.
 Upstream's `<https://opencode.ai>` site also names the current version.
 
-The package targets `x86_64` and `aarch64`; confirm the new tag publishes both
-before bumping:
+The package targets `x86_64` and `aarch64`. Confirm the new tag publishes both,
+and read its manifest-list digest (the top-level `Digest:` line, not a
+per-platform one):
 
 ```bash
-docker manifest inspect ghcr.io/anomalyco/opencode:<version> | jq '.manifests[].platform'
+docker buildx imagetools inspect ghcr.io/anomalyco/opencode:<version>
 ```
 
 ## Applying the bump
 
-1. Edit the `FROM` line in `./Dockerfile` to the new tag:
+1. Edit the `FROM` line in `./Dockerfile` to the new tag and its digest:
 
    ```dockerfile
-   FROM ghcr.io/anomalyco/opencode:<version>
+   FROM ghcr.io/anomalyco/opencode:<version>@sha256:<manifest-list digest>
    ```
 
 2. Bump the package version in `startos/versions/current.ts` to match, and add

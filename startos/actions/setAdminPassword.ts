@@ -13,8 +13,6 @@ export const setAdminPassword = sdk.Action.withoutInput(
     description: i18n(
       'Generate a new random password for the OpenCode web interface. Replaces any existing password.',
     ),
-    // Confirm before overwriting an existing password; run straight through on
-    // first set.
     warning: (await storeJson.read((s) => s.adminPassword).const(effects))
       ? i18n('Replaces the current admin password.')
       : null,

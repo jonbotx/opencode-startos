@@ -1,7 +1,4 @@
-FROM ghcr.io/anomalyco/opencode:2.4.1
+FROM ghcr.io/anomalyco/opencode:2.4.1@sha256:10e340e3e86d7b23e95cd9960f5a934beae8a87593d7398b5629b6112ed1fc63
 
-# The upstream image is a slim Alpine base that ships neither git nor a POSIX
-# shell beyond busybox. OpenCode shells out to git for repositories, diffs and
-# worktrees, and uses a shell for its terminal tool, so both are required for
-# the service to work as documented. openssh-client lets git reach ssh remotes.
+# OpenCode shells out to git and bash, which the Alpine base omits.
 RUN apk add --no-cache git bash openssh-client
