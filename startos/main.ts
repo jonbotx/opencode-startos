@@ -1,7 +1,7 @@
 import { storeJson } from './fileModels/store.json'
 import { i18n } from './i18n'
 import { sdk } from './sdk'
-import { uiPort } from './utils'
+import { providerKeyEnvVar, uiPort } from './utils'
 
 export const main = sdk.setupMain(async ({ effects }) => {
   // Reactive: when the password changes (set or rotated by the action), the
@@ -19,6 +19,20 @@ export const main = sdk.setupMain(async ({ effects }) => {
   if (!adminPassword) {
     throw new Error('The admin password has not been set')
   }
+
+  // Reactive: saving a provider with an API key changes this map, which rebuilds
+  // the daemon spec and restarts the server so it gains the `OPENCODE_KEY_*`
+  // variables the provider entries in OpenCode's own config refer to. Provider
+  // entries themselves need no restart — OpenCode reloads that file live.
+  const providerKeys =
+    (await storeJson.read((s) => s.providerKeys).const(effects)) ?? {}
+  const providerEnv = Object.fromEntries(
+    Object.entries(providerKeys)
+      .filter(
+        (entry): entry is [string, string] => typeof entry[1] === 'string',
+      )
+      .map(([id, key]) => [providerKeyEnvVar(id), key]),
+  )
 
   return sdk.Daemons.of(effects).addDaemon('opencode', {
     subcontainer: sdk.SubContainer.of(
@@ -49,6 +63,7 @@ export const main = sdk.setupMain(async ({ effects }) => {
         OPENCODE_PASSWORD: adminPassword,
         // Never let the container try to replace its own binary.
         OPENCODE_DISABLE_AUTOUPDATE: '1',
+        ...providerEnv,
       },
     },
     ready: {
