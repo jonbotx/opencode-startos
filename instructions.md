@@ -30,9 +30,9 @@ StartOS server. You use it from a browser:
 3. On the **Connect to a server** screen, click **Use password**. The server
    address is already filled in — leave it as it is — paste the password, and
    click **Connect**.
-4. In the web app, open **Settings → Providers** and connect a model provider
-   (an API key, or your OpenCode Console account). OpenCode can't do anything
-   until it has a model to use.
+4. Before OpenCode can answer anything it needs a model to use. From StartOS, run
+   the **Configure Model Providers** action and add your provider — see
+   [Connecting a model provider](#connecting-a-model-provider).
 5. Back on the home screen, click **Add project** and choose a folder to work in.
    Pick a folder inside your home directory (`~/…`, shown as `root` when you
    browse from `/`) — that is where your server keeps data across restarts.
@@ -51,6 +51,35 @@ Once signed in, a browser remembers the connection; you can add more projects,
 open past sessions, and change settings from the sidebar. The same address also
 serves the HTTP API under `/api/*`, if you want to drive the server from your own
 scripts.
+
+### Connecting a model provider
+
+OpenCode talks to any OpenAI-compatible endpoint — a vLLM, LM Studio, or Ollama
+server you run yourself, or a hosted API such as OpenRouter. You add one from
+StartOS, not from the web app, with the **Configure Model Providers** action.
+Each entry asks for:
+
+- **ID** — a short name used to identify the provider (`vllm`). Lowercase
+  letters, digits, and dashes.
+- **Name** — how the provider appears in OpenCode's model list (`Lab vLLM`).
+- **Base URL** — the endpoint's API root, including `/v1`, for example
+  `http://192.168.1.50:8000/v1`.
+- **API Key** — only if the endpoint checks one. Leave it blank for a local
+  server that accepts any request. It is kept on the StartOS side and is never
+  written into the configuration file.
+- **Models** — one entry per model ID the endpoint serves, for example
+  `glm-5.3`. If you are not sure of the exact IDs, the endpoint lists them under
+  `/v1/models`.
+- **Default** — turn this on to make the first model in the list the one new
+  sessions start on.
+
+Save, and the models are available in the web app right away — refresh the page
+if the picker still looks empty.
+
+Run the action again to change an endpoint or add another provider, and delete a
+provider by removing its entry from the list. The API key of a provider you have
+already configured is filled in when the form opens, so leave it as it is unless
+you are replacing it.
 
 ### Changing the password
 
@@ -71,6 +100,10 @@ login password back as they were.
   password from the **Set Admin Password** action instead.
 - **The server does not update itself.** OpenCode's in-app update check is turned
   off; update the service by updating this package in StartOS.
+- **Providers are configured from StartOS, not from the app.** The web app in this
+  version has no provider screen — use the **Configure Model Providers** action.
+  It connects OpenAI-compatible endpoints, such as vLLM, LM Studio, Ollama, and
+  OpenRouter.
 
 ### If you publish the interface through a tunnel
 

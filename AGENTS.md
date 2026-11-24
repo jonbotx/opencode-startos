@@ -18,11 +18,17 @@ bare clone with no workspace, the full guide is at <https://docs.start9.com/pack
 - **The interface port is defined once, in `startos/utils.ts`.** `startos/main.ts`
   passes it to `opencode serve` and health-checks it, and `startos/interfaces.ts`
   binds it. If the port ever changes, all three must change together.
-- **The password is delivered only through the environment.** OpenCode reads
-  `OPENCODE_PASSWORD`, with the username fixed at `opencode`; it cannot be handed a
-  password hash in a config file. `startos/fileModels/store.json.ts` holds the value
-  on the `startos` volume, which no subcontainer mounts. Do not "improve" this by
-  writing OpenCode's own config file.
+- **The login password and provider API keys reach the container only through the
+  environment.** OpenCode reads the password from `OPENCODE_PASSWORD` (username fixed
+  at `opencode`) and each provider key from `OPENCODE_KEY_<ID>`; neither can be handed
+  to it as a hash. `startos/fileModels/store.json.ts` holds both on the `startos`
+  volume, which no subcontainer mounts, and `opencode.json` refers to a key as
+  `{env:…}` rather than carrying it.
+- **`opencode.json` is written by the Configure Model Providers action, never
+  generated at startup.** OpenCode reloads that file live, so a provider change needs
+  no restart — but a new or changed key does, which is why `main.ts` reads
+  `providerKeys` reactively. Rebuild the `providers` map from the form on every save:
+  that is what makes leaving an entry out disconnect the provider.
 - **`startos/main.ts` mounts the `main` volume over the container's entire home**
   (`/root`), which is where OpenCode keeps sessions, provider credentials, cloned
   repositories, and projects. Narrowing the mountpoint drops user data from backups.
